@@ -46,15 +46,12 @@ fn foo(_attr: TokenStream, input: TokenStream) -> TokenStream {
         let fn_ident = syn::Ident::new(&cap[1].replace("-", "_"), span);
         let svg_str = format!("<svg {}>{}</svg>", SVG_ATTRS, &cap[2]);
         quote_spanned! {span=>
-            fn #fn_ident() -> &'static str {
-                #svg_str
-            }
+            const #fn_ident: &'static str = #svg_str;
         }
     });
 
     output.extend(quote_spanned! {span=>
         impl #ident {
-            // pub const SPRITE: &'static str = #sprite_content;
             #(#icon_fns)*
         }
     });
