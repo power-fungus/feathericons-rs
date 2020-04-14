@@ -1,5 +1,5 @@
 [package]
-name = "seed-feathericons-codegen"
+name = "feathericons-codegen"
 version = "0.1.0"
 authors = ["power-fungus <samuel.pilz@posteo.net>"]
 edition = "2018"

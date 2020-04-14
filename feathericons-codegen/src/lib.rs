@@ -1,12 +1,12 @@
+#![feature(proc_macro_raw_ident)]
+
 extern crate proc_macro;
 
 use proc_macro2::TokenStream;
-use quote::quote_spanned;
+use quote::quote;
 use quote::ToTokens;
 
 use regex::Regex;
-use std::path::Path;
-use std::{env, fs, str};
 
 const SVG_ATTRS: &'static str = std::concat!(
     r#"width="24""#,
@@ -33,28 +33,34 @@ fn foo(_attr: TokenStream, input: TokenStream) -> TokenStream {
     };
     let mut output = TokenStream::new();
     output.extend(input.to_token_stream());
-
     let ident = &input.ident;
-    let span = ident.span();
-
-    let sprite_file = env::var("FEATHERICONS_SPRITE").unwrap();
-    let sprite_content = fs::read(Path::new(&sprite_file)).unwrap();
-    let sprite_content = str::from_utf8(&sprite_content).unwrap();
+    // panic!("{:#?}", TokenStream::from_str("r#match").unwrap());
+    let sprite = std::include_str!("../feather-sprite-4.28.0.svg");
 
     let re = Regex::new(r#"<symbol id="([^"]*)" viewBox="0 0 24 24">(.*?)</symbol>"#).unwrap();
-    let icon_fns = re.captures_iter(sprite_content).map(|cap| {
-        let fn_ident = syn::Ident::new(&cap[1].replace("-", "_"), span);
+    let icon_consts = re.captures_iter(sprite).map(|cap| {
+        let icon_ident = icon_ident(&cap[1]);
         let svg_str = format!("<svg {}>{}</svg>", SVG_ATTRS, &cap[2]);
-        quote_spanned! {span=>
-            const #fn_ident: &'static str = #svg_str;
+        quote! {
+            const #icon_ident: &'static str = #svg_str;
         }
     });
 
-    output.extend(quote_spanned! {span=>
+    output.extend(quote! {
         impl #ident {
-            #(#icon_fns)*
+            #(#icon_consts)*
         }
     });
 
     output
+}
+
+fn icon_ident(name: &str) -> syn::Ident {
+    syn::parse2(TokenStream::from(proc_macro::TokenStream::from(
+        proc_macro::TokenTree::from(proc_macro::Ident::new_raw(
+            &name.replace("-", "_"),
+            proc_macro::Span::call_site(),
+        )),
+    )))
+    .unwrap()
 }
