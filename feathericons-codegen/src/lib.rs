@@ -9,14 +9,18 @@ use quote::ToTokens;
 use regex::Regex;
 
 const SVG_ATTRS: &'static str = std::concat!(
-    r#"width="24""#,
-    r#"height="24""#,
-    r#"fill="none""#,
-    r#"stroke="currentColor""#,
-    r#"stroke-width="2""#,
-    r#"stroke-linecap="round""#,
-    r#"stroke-linejoin="round"#,
+    r#"width="24" "#,
+    r#"height="24" "#,
+    r#"fill="none" "#,
+    r#"stroke="currentColor" "#,
+    r#"stroke-width="2" "#,
+    r#"stroke-linecap="round" "#,
+    r#"stroke-linejoin="round" "#,
 );
+
+// downloaded from: https://unpkg.com/feather-icons@4.28.0/dist/feather-sprite.svg
+const SPRITE: &'static str = std::include_str!("../feather-sprite-4.28.0.svg");
+
 
 #[proc_macro_attribute]
 pub fn feathericons(
@@ -35,10 +39,9 @@ fn foo(_attr: TokenStream, input: TokenStream) -> TokenStream {
     output.extend(input.to_token_stream());
     let ident = &input.ident;
     // panic!("{:#?}", TokenStream::from_str("r#match").unwrap());
-    let sprite = std::include_str!("../feather-sprite-4.28.0.svg");
 
     let re = Regex::new(r#"<symbol id="([^"]*)" viewBox="0 0 24 24">(.*?)</symbol>"#).unwrap();
-    let icon_consts = re.captures_iter(sprite).map(|cap| {
+    let icon_consts = re.captures_iter(SPRITE).map(|cap| {
         let icon_ident = icon_ident(&cap[1]);
         let svg_str = format!("<svg {}>{}</svg>", SVG_ATTRS, &cap[2]);
         quote! {
