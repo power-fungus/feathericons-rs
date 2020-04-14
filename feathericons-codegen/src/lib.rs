@@ -42,7 +42,7 @@ fn foo(_attr: TokenStream, input: TokenStream) -> TokenStream {
         let icon_ident = icon_ident(&cap[1]);
         let svg_str = format!("<svg {}>{}</svg>", SVG_ATTRS, &cap[2]);
         quote! {
-            const #icon_ident: &'static str = #svg_str;
+            pub const #icon_ident: &'static str = #svg_str;
         }
     });
 
